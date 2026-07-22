@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TransfereGov Dashboard - Gestão de Propostas</title>
+  <!-- Material Symbols Outlined -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <!-- Custom Style -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Sidebar Lateral -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">TG</div>
+        <div class="logo-text">TransfereGov</div>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="menu-section">Painel</li>
+        <li>
+          <a class="menu-item active" data-view="dashboard">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a class="menu-item" data-view="financeiro">
+            <span class="material-symbols-outlined">payments</span>
+            <span>Painel Financeiro</span>
+          </a>
+        </li>
+        
+        <li class="menu-section">Gestão</li>
+        <li>
+          <a class="menu-item" data-view="propostas">
+            <span class="material-symbols-outlined">table_chart</span>
+            <span>Consulta Avançada</span>
+          </a>
+        </li>
+        <li>
+          <a class="menu-item" data-view="cadastro">
+            <span class="material-symbols-outlined">add_circle</span>
+            <span>Cadastrar Proposta</span>
+          </a>
+        </li>
+        <li>
+          <a class="menu-item" data-view="relatorios">
+            <span class="material-symbols-outlined">description</span>
+            <span>Relatórios</span>
+          </a>
+        </li>
+        
+        <li class="menu-section">Configuração</li>
+        <li>
+          <a class="menu-item" data-view="admin">
+            <span class="material-symbols-outlined">admin_panel_settings</span>
+            <span>Administração</span>
+          </a>
+        </li>
+        <li>
+          <a class="menu-item" data-view="configuracoes">
+            <span class="material-symbols-outlined">settings</span>
+            <span>Configurações</span>
+          </a>
+        </li>
+      </ul>
+      
+      <!-- Rodapé do menu sidebar -->
+      <div style="padding: 16px; border-top: 1px solid var(--md-sys-color-surface-variant); display: flex; align-items: center; justify-content: space-between;">
+        <button class="btn-icon" id="themeToggleBtn" title="Alternar Tema">
+          <span class="material-symbols-outlined">dark_mode</span>
+        </button>
+        <button class="btn-icon" id="sidebarCollapseBtn" title="Recolher Menu">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Área de Conteúdo Principal -->
+    <main class="main-content">
+      
+      <!-- Topbar Principal -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="btn-icon" id="sidebarMobileBtn" style="display: none;">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+          
+          <!-- Pesquisa Global Inteligente -->
+          <div class="search-box">
+            <span class="material-symbols-outlined search-icon">search</span>
+            <input type="text" id="globalSearchInput" placeholder="Nº proposta, programa, proponente, órgão...">
+            <div class="autocomplete-dropdown" id="globalSearchDropdown"></div>
+          </div>
+        </div>
+        
+        <div class="topbar-right">
+          <!-- Notificações -->
+          <div class="notification-badge-wrapper">
+            <button class="btn-icon" id="notificationToggleBtn">
+              <span class="material-symbols-outlined">notifications</span>
+              <span class="badge" id="notificationCount">3</span>
+            </button>
+          </div>
+          
+          <!-- Perfil do Usuário Simplificado -->
+          <div style="display: flex; align-items: center; gap: 8px; margin-left: 8px; border-left: 1px solid var(--md-sys-color-surface-variant); padding-left: 16px;">
+            <div style="text-align: right; display: flex; flex-direction: column;">
+              <span style="font-size: 13px; font-weight: 600;" id="userProfileName">Ricardo Fonseca</span>
+              <span style="font-size: 11px; color: var(--md-sys-color-on-surface-variant);">Administrador</span>
+            </div>
+            <div style="width: 36px; height: 36px; border-radius: 50%; background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+              RF
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Corpo Principal (Abas Dinâmicas) -->
+      <div class="content-body">
+
+        <!-- VIEW 1: Dashboard Executivo -->
+        <section class="view-container active" id="view-dashboard">
+          <div class="page-title-row">
+            <div>
+              <div class="breadcrumbs">Visão Geral <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span> Dashboard</div>
+              <h1 class="page-title">Dashboard Executivo</h1>
+            </div>
+            <button class="btn btn-primary" onclick="switchView('cadastro')">
+              <span class="material-symbols-outlined">add</span> Nova Proposta
+            </button>
+          </div>
+
+          <!-- KPIs Indicadores -->
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-icon"><span class="material-symbols-outlined">assignment</span></div>
+              <div class="kpi-details">
+                <h4>Total de Propostas</h4>
+                <div class="value" id="kpi-total-propostas">0</div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background-color:#e8f5e9; color:#2e7d32;"><span class="material-symbols-outlined">payments</span></div>
+              <div class="kpi-details">
+                <h4>Valor Total</h4>
+                <div class="value" id="kpi-valor-total">R$ 0,00</div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background-color:#e3f2fd; color:#1565c0;"><span class="material-symbols-outlined">handshake</span></div>
+              <div class="kpi-details">
+                <h4>Total Contrapartida</h4>
+                <div class="value" id="kpi-contrapartida-total">R$ 0,00</div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background-color:#fff3e0; color:#ef6c00;"><span class="material-symbols-outlined">calculate</span></div>
+              <div class="kpi-details">
+                <h4>Valor Médio</h4>
+                <div class="value" id="kpi-valor-medio">R$ 0,00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid de Gráficos -->
+          <div class="charts-grid">
+            <!-- Gráfico de Donut - Situação -->
+            <div class="chart-card col-4">
+              <div class="chart-header">
+                <h3>Distribuição por Situação</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chartSituacao"></canvas>
+              </div>
+            </div>
+
+            <!-- Gráfico de Barras - Programas -->
+            <div class="chart-card col-8">
+              <div class="chart-header">
+                <h3>Propostas por Programa</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chartProgramas"></canvas>
+              </div>
+            </div>
+
+            <!-- Gráficos de Gauges (Taxas de Habilitação e Seleção) -->
+            <div class="chart-card col-4">
+              <div class="chart-header">
+                <h3>Percentuais de Efetivação</h3>
+              </div>
+              <div class="gauge-flex-container">
+                <div class="gauge-item">
+                  <div class="gauge-circle">
+                    <svg viewBox="0 0 36 36">
+                      <path class="bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path class="value-stroke" id="gaugeHabilitadasPath" stroke="#2e7d32" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="gauge-text" id="gaugeHabilitadasText">0%</div>
+                  </div>
+                  <span class="gauge-label">Habilitadas</span>
+                </div>
+                
+                <div class="gauge-item">
+                  <div class="gauge-circle">
+                    <svg viewBox="0 0 36 36">
+                      <path class="bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path class="value-stroke" id="gaugeSelecionadasPath" stroke="#1565c0" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="gauge-text" id="gaugeSelecionadasText">0%</div>
+                  </div>
+                  <span class="gauge-label">Selecionadas</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Evolução de Valores -->
+            <div class="chart-card col-8">
+              <div class="chart-header">
+                <h3>Evolução dos Investimentos</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chartEvolucao"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção de Insights Rápidos -->
+          <div class="charts-grid">
+            <div class="chart-card col-12">
+              <div class="chart-header">
+                <h3 style="display:flex; align-items:center; gap:8px;">
+                  <span class="material-symbols-outlined" style="color:var(--md-sys-color-primary);">lightbulb</span>
+                  Painel de Insights Governamentais
+                </h3>
+              </div>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:16px;">
+                <div style="padding:16px; background-color:var(--md-sys-color-surface-variant); border-radius:var(--radius-md);">
+                  <strong style="font-size:14px; display:block; margin-bottom:8px;">Maior Investimento</strong>
+                  <span id="insight-maior-investimento" style="font-size:16px; font-weight:600; color:var(--md-sys-color-primary);">Carregando...</span>
+                </div>
+                <div style="padding:16px; background-color:var(--md-sys-color-surface-variant); border-radius:var(--radius-md);">
+                  <strong style="font-size:14px; display:block; margin-bottom:8px;">UF com Mais Recursos</strong>
+                  <span id="insight-uf-recursos" style="font-size:16px; font-weight:600; color:var(--md-sys-color-primary);">Carregando...</span>
+                </div>
+                <div style="padding:16px; background-color:var(--md-sys-color-surface-variant); border-radius:var(--radius-md);">
+                  <strong style="font-size:14px; display:block; margin-bottom:8px;">Média Percentual de Contrapartida</strong>
+                  <span id="insight-media-contrapartida" style="font-size:16px; font-weight:600; color:var(--md-sys-color-primary);">Carregando...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 2: Painel Financeiro -->
+        <section class="view-container" id="view-financeiro">
+          <div class="page-title-row">
+            <div>
+              <div class="breadcrumbs">Financeiro <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span> Painel Financeiro</div>
+              <h1 class="page-title">Análise de Recursos Financeiros</h1>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <!-- Valores por Ministério -->
+            <div class="chart-card col-6">
+              <div class="chart-header">
+                <h3>Recursos por Ministério Concedente</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chartFinanceiroMinisterios"></canvas>
+              </div>
+            </div>
+
+            <!-- Top Proponentes -->
+            <div class="chart-card col-6">
+              <div class="chart-header">
+                <h3>Top Proponentes (Volume de Recurso)</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chartFinanceiroProponentes"></canvas>
+              </div>
+            </div>
+
+            <!-- Gráfico de Comparação Habilitado vs Selecionado -->
+            <div class="chart-card col-12">
+              <div class="chart-header">
+                <h3>Distribuição Financeira por Situação</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chartFinanceiroSituacoes"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 3: Consulta Avançada / Tabela -->
+        <section class="view-container" id="view-propostas">
+          <div class="page-title-row">
+            <div>
+              <div class="breadcrumbs">Gestão <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span> Propostas</div>
+              <h1 class="page-title">Consulta Avançada de Propostas</h1>
+            </div>
+          </div>
+
+          <!-- Filtros de Pesquisa -->
+          <div class="filters-card">
+            <div class="filters-header" onclick="toggleFiltersPanel()">
+              <h3>
+                <span class="material-symbols-outlined">filter_list</span>
+                Filtros Avançados
+              </h3>
+              <span class="material-symbols-outlined" id="filterToggleIcon">expand_more</span>
+            </div>
+            
+            <div class="filters-body" id="filtersBody">
+              <div class="form-group">
+                <label for="filterNrProposta">Número da Proposta</label>
+                <input type="text" id="filterNrProposta" class="form-control" placeholder="Ex: 560000...">
+              </div>
+              <div class="form-group">
+                <label for="filterSituacao">Situação</label>
+                <select id="filterSituacao">
+                  <option value="">Todas</option>
+                  <option value="SELECIONADA">Selecionada</option>
+                  <option value="HABILITADA">Habilitada</option>
+                  <option value="NAO_HABILITADA">Não Habilitada</option>
+                  <option value="EM_ANALISE">Em Análise</option>
+                  <option value="CADASTRADA">Cadastrada</option>
+                  <option value="ENVIADA">Enviada</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="filterUF">UF</label>
+                <select id="filterUF">
+                  <option value="">Todas</option>
+                  <option value="AC">AC</option>
+                  <option value="AM">AM</option>
+                  <option value="BA">BA</option>
+                  <option value="CE">CE</option>
+                  <option value="MG">MG</option>
+                  <option value="MT">MT</option>
+                  <option value="PE">PE</option>
+                  <option value="PI">PI</option>
+                  <option value="PR">PR</option>
+                  <option value="RJ">RJ</option>
+                  <option value="RS">RS</option>
+                  <option value="SC">SC</option>
+                  <option value="SP">SP</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="filterMinisterio">Ministério</label>
+                <select id="filterMinisterio">
+                  <option value="">Todos</option>
+                  <option value="Cidades">Cidades</option>
+                  <option value="Saúde">Saúde</option>
+                  <option value="Educação">Educação</option>
+                  <option value="Esporte">Esporte</option>
+                  <option value="Desenvolvimento Agrário">Desenvolvimento Agrário</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="filterAno">Ano</label>
+                <select id="filterAno">
+                  <option value="">Todos</option>
+                  <option value="2023">2023</option>
+                  <option value="2024">2024</option>
+                  <option value="2025">2025</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="filter-actions">
+              <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Limpar</button>
+              <button class="btn btn-outline btn-sm" onclick="saveFavoriteFilter()">Favoritar Filtro</button>
+              <button class="btn btn-primary btn-sm" onclick="applyFilters()">Aplicar Filtros</button>
+            </div>
+          </div>
+
+          <!-- Tabela de Resultados -->
+          <div class="table-card">
+            <div class="table-responsive">
+              <table id="proposalsTable">
+                <thead>
+                  <tr>
+                    <th onclick="sortTable('nrProposta')">Nº Proposta <span class="material-symbols-outlined sort-icon">unfold_more</span></th>
+                    <th onclick="sortTable('objeto')">Objeto <span class="material-symbols-outlined sort-icon">unfold_more</span></th>
+                    <th onclick="sortTable('proponente')">Proponente <span class="material-symbols-outlined sort-icon">unfold_more</span></th>
+                    <th onclick="sortTable('uf')">UF <span class="material-symbols-outlined sort-icon">unfold_more</span></th>
+                    <th onclick="sortTable('situacao')">Situação <span class="material-symbols-outlined sort-icon">unfold_more</span></th>
+                    <th onclick="sortTable('valorTotal')">Valor Total <span class="material-symbols-outlined sort-icon">unfold_more</span></th>
+                    <th onclick="sortTable('contrapartida')">Contrapartida <span class="material-symbols-outlined sort-icon">unfold_more</span></th>
+                    <th class="col-actions">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="proposalsTableBody">
+                  <!-- Linhas geradas via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Rodapé e Paginação -->
+            <div class="table-footer">
+              <div class="pagination-info" id="paginationInfo">Mostrando 1-10 de 0 propostas</div>
+              <div class="pagination-controls">
+                <button class="btn-icon" id="btnPrevPage" onclick="prevPage()"><span class="material-symbols-outlined">chevron_left</span></button>
+                <button class="btn-icon" id="btnNextPage" onclick="nextPage()"><span class="material-symbols-outlined">chevron_right</span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 4: Detalhamento da Proposta (Tabs) -->
+        <section class="view-container" id="view-detalhe">
+          <div class="page-title-row">
+            <div>
+              <div class="breadcrumbs">Propostas <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span> Detalhes</div>
+              <h1 class="page-title" id="detalhe-titulo">Detalhamento da Proposta</h1>
+            </div>
+            <button class="btn btn-outline" onclick="switchView('propostas')">
+              <span class="material-symbols-outlined">arrow_back</span> Voltar para Consulta
+            </button>
+          </div>
+
+          <!-- Stepper de Tramitação (Linha do tempo) -->
+          <div class="timeline" id="detalhe-stepper">
+            <div class="timeline-progress" id="stepperProgress" style="width: 0%;"></div>
+            <div class="timeline-step" id="step-CADASTRADA"><div class="step-circle">1</div><div class="step-label">Cadastro</div></div>
+            <div class="timeline-step" id="step-ENVIADA"><div class="step-circle">2</div><div class="step-label">Envio</div></div>
+            <div class="timeline-step" id="step-EM_ANALISE"><div class="step-circle">3</div><div class="step-label">Análise</div></div>
+            <div class="timeline-step" id="step-HABILITADA"><div class="step-circle">4</div><div class="step-label">Habilitação</div></div>
+            <div class="timeline-step" id="step-SELECIONADA"><div class="step-circle">5</div><div class="step-label">Seleção</div></div>
+          </div>
+
+          <!-- Abas de Navegação interna -->
+          <div class="tabs-navigation">
+            <button class="tab-btn active" onclick="switchDetailTab('detalhe-geral')">Dados Gerais</button>
+            <button class="tab-btn" onclick="switchDetailTab('detalhe-financeiro')">Aba Financeira</button>
+            <button class="tab-btn" onclick="switchDetailTab('detalhe-documentos')">Documentos</button>
+            <button class="tab-btn" onclick="switchDetailTab('detalhe-historico')">Histórico & Tramitação</button>
+          </div>
+
+          <!-- Conteúdo Aba 1: Dados Gerais -->
+          <div class="tab-content active" id="detalhe-geral">
+            <div class="charts-grid">
+              <div class="chart-card col-8">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; font-size:14px;">
+                  <div><strong>Nº Proposta:</strong> <span id="det-nrProposta"></span></div>
+                  <div><strong>Situação:</strong> <span id="det-situacao"></span></div>
+                  <div style="grid-column: span 2;"><strong>Objeto:</strong> <p id="det-objeto" style="margin-top:4px; color:var(--md-sys-color-on-surface-variant);"></p></div>
+                  <div style="grid-column: span 2;"><strong>Justificativa:</strong> <p id="det-justificativa" style="margin-top:4px; color:var(--md-sys-color-on-surface-variant);"></p></div>
+                  <div><strong>Proponente:</strong> <span id="det-proponente"></span></div>
+                  <div><strong>CNPJ:</strong> <span id="det-cnpj"></span></div>
+                  <div><strong>Município / UF:</strong> <span id="det-localidade"></span></div>
+                  <div><strong>Ministério:</strong> <span id="det-ministerio"></span></div>
+                  <div><strong>Órgão Concedente:</strong> <span id="det-orgao"></span></div>
+                  <div><strong>Modalidade:</strong> <span id="det-modalidade"></span></div>
+                </div>
+              </div>
+              
+              <div class="chart-card col-4">
+                <div style="display:flex; flex-direction:column; gap:16px; font-size:14px;">
+                  <h3 style="font-size:15px; border-bottom:1px solid var(--md-sys-color-surface-variant); padding-bottom:8px;">Responsabilidade</h3>
+                  <div><strong>Nome do Responsável:</strong> <span id="det-responsavel"></span></div>
+                  <div><strong>Telefone:</strong> <span id="det-telefone"></span></div>
+                  <div><strong>E-mail:</strong> <span id="det-email"></span></div>
+                  <div><strong>Data de Cadastro:</strong> <span id="det-dataCadastro"></span></div>
+                  <div style="border-top:1px solid var(--md-sys-color-surface-variant); padding-top:12px;">
+                    <strong>Observações Técnicas:</strong>
+                    <p id="det-observacoes" style="font-size:12px; color:var(--md-sys-color-on-surface-variant); margin-top:4px;"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conteúdo Aba 2: Aba Financeira -->
+          <div class="tab-content" id="detalhe-financeiro">
+            <div class="charts-grid">
+              <div class="chart-card col-6">
+                <h3>Composição Orçamentária</h3>
+                <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px; font-size:14px;">
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--md-sys-color-surface-variant); padding-bottom:8px;">
+                    <span>Valor da Proposta:</span>
+                    <strong id="det-fin-valorTotal">R$ 0,00</strong>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--md-sys-color-surface-variant); padding-bottom:8px;">
+                    <span>Valor de Contrapartida:</span>
+                    <strong id="det-fin-contrapartida">R$ 0,00</strong>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--md-sys-color-surface-variant); padding-bottom:8px;">
+                    <span>Percentual de Contrapartida:</span>
+                    <strong id="det-fin-pctContrapartida">0%</strong>
+                  </div>
+                  <div style="display:flex; justify-content:space-between;">
+                    <span>Recurso Solicitado União:</span>
+                    <strong id="det-fin-solicitado" style="color:var(--md-sys-color-primary);">R$ 0,00</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chart-card col-6">
+                <h3>Cronograma de Liberações</h3>
+                <div style="font-size:13px; margin-top:16px;">
+                  <table style="width:100%;">
+                    <thead>
+                      <tr>
+                        <th>Parcela</th>
+                        <th>Previsão</th>
+                        <th>Valor Previsto</th>
+                        <th>Situação</th>
+                      </tr>
+                    </thead>
+                    <tbody id="detalheFinanceiroTableBody">
+                      <!-- Linhas geradas de forma dinâmica -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conteúdo Aba 3: Upload de Documentos -->
+          <div class="tab-content" id="detalhe-documentos">
+            <div class="charts-grid">
+              <div class="chart-card col-12">
+                <h3>Upload de Documentos da Proposta</h3>
+                <p style="font-size:13px; color:var(--md-sys-color-on-surface-variant); margin-bottom:16px;">
+                  Faça o upload do Plano de Trabalho, Certidões do CAUC, Projeto Básico ou Documentos de Licenciamento.
+                </p>
+                
+                <!-- Drag and drop zone -->
+                <div class="upload-dropzone" id="fileDropzone">
+                  <span class="material-symbols-outlined" style="font-size:48px; color:var(--md-sys-color-primary);">cloud_upload</span>
+                  <h3>Arraste e solte arquivos aqui</h3>
+                  <p>Ou clique para selecionar arquivos do seu computador (PDF, Word, Excel, Imagens)</p>
+                  <input type="file" id="fileInput" style="display:none;" multiple>
+                </div>
+                
+                <ul class="file-list" id="uploadedFileList">
+                  <!-- Arquivos simulados iniciais -->
+                  <li class="file-item">
+                    <span style="display:flex; align-items:center; gap:8px;">
+                      <span class="material-symbols-outlined" style="color:#d32f2f">picture_as_pdf</span>
+                      Plano_de_Trabalho_Aprovado.pdf (2.4 MB)
+                    </span>
+                    <button class="btn btn-outline btn-sm" onclick="downloadMockFile('Plano_de_Trabalho_Aprovado.pdf')">Download</button>
+                  </li>
+                  <li class="file-item">
+                    <span style="display:flex; align-items:center; gap:8px;">
+                      <span class="material-symbols-outlined" style="color:#1976d2">description</span>
+                      Certidao_Negativa_Debitos_CAUC.pdf (850 KB)
+                    </span>
+                    <button class="btn btn-outline btn-sm" onclick="downloadMockFile('Certidao_Negativa_Debitos_CAUC.pdf')">Download</button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conteúdo Aba 4: Histórico & Auditoria -->
+          <div class="tab-content" id="detalhe-historico">
+            <div class="charts-grid">
+              <div class="chart-card col-12">
+                <h3>Histórico de Eventos e Auditoria</h3>
+                <div style="font-size:13px; margin-top:16px;">
+                  <table style="width:100%;">
+                    <thead>
+                      <tr>
+                        <th>Usuário</th>
+                        <th>Data/Hora</th>
+                        <th>Operação</th>
+                        <th>Descrição da Alteração</th>
+                      </tr>
+                    </thead>
+                    <tbody id="detalheHistoricoTableBody">
+                      <!-- Gerado dinamicamente -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 5: Formulário de Cadastro / Edição -->
+        <section class="view-container" id="view-cadastro">
+          <div class="page-title-row">
+            <div>
+              <div class="breadcrumbs">Gestão <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span> Cadastro</div>
+              <h1 class="page-title" id="cadastro-form-title">Cadastrar Nova Proposta</h1>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <span id="autoSaveIndicator" style="font-size:12px; color:var(--md-sys-color-on-surface-variant); align-self:center; display:none;">Rascunho salvo automaticamente...</span>
+              <button class="btn btn-outline" onclick="cancelForm()">Cancelar</button>
+            </div>
+          </div>
+
+          <div class="table-card" style="padding: 24px;">
+            <form id="proposalForm" onsubmit="saveProposalForm(event)">
+              <!-- Input oculto para armazenar o ID se for edição -->
+              <input type="hidden" id="form-id">
+              
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px;">
+                <div class="form-group">
+                  <label for="form-nrProposta">Número da Proposta *</label>
+                  <input type="text" id="form-nrProposta" class="form-control" required placeholder="Ex: 5600000XXXX/2026">
+                </div>
+                <div class="form-group">
+                  <label for="form-programa">Programa Governamental *</label>
+                  <select id="form-programa" required>
+                    <option value="">Selecione um programa</option>
+                  </select>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                  <label for="form-objeto">Objeto da Proposta *</label>
+                  <input type="text" id="form-objeto" class="form-control" required placeholder="Ex: Requalificação urbana do bairro centro">
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                  <label for="form-justificativa">Justificativa *</label>
+                  <textarea id="form-justificativa" class="form-control" rows="3" required placeholder="Escreva a justificativa social, econômica ou técnica do projeto"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="form-proponente">Nome do Proponente *</label>
+                  <input type="text" id="form-proponente" class="form-control" required placeholder="Ex: Prefeitura Municipal de...">
+                </div>
+                <div class="form-group">
+                  <label for="form-cnpj">CNPJ do Proponente *</label>
+                  <input type="text" id="form-cnpj" class="form-control" required placeholder="Ex: 00.000.000/0001-00">
+                </div>
+                <div class="form-group">
+                  <label for="form-municipio">Município *</label>
+                  <input type="text" id="form-municipio" class="form-control" required placeholder="Ex: Recife">
+                </div>
+                <div class="form-group">
+                  <label for="form-uf">UF *</label>
+                  <select id="form-uf" required>
+                    <option value="">Selecione</option>
+                    <option value="AC">AC</option>
+                    <option value="AL">AL</option>
+                    <option value="AM">AM</option>
+                    <option value="AP">AP</option>
+                    <option value="BA">BA</option>
+                    <option value="CE">CE</option>
+                    <option value="DF">DF</option>
+                    <option value="ES">ES</option>
+                    <option value="GO">GO</option>
+                    <option value="MA">MA</option>
+                    <option value="MG">MG</option>
+                    <option value="MS">MS</option>
+                    <option value="MT">MT</option>
+                    <option value="PA">PA</option>
+                    <option value="PB">PB</option>
+                    <option value="PE">PE</option>
+                    <option value="PI">PI</option>
+                    <option value="PR">PR</option>
+                    <option value="RJ">RJ</option>
+                    <option value="RN">RN</option>
+                    <option value="RO">RO</option>
+                    <option value="RR">RR</option>
+                    <option value="RS">RS</option>
+                    <option value="SC">SC</option>
+                    <option value="SE">SE</option>
+                    <option value="SP">SP</option>
+                    <option value="TO">TO</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="form-ministerio">Ministério Concedente *</label>
+                  <select id="form-ministerio" required onchange="populateOrgaos()">
+                    <option value="">Selecione o ministério</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="form-orgao">Órgão Concedente *</label>
+                  <select id="form-orgao" required>
+                    <option value="">Selecione o órgão</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="form-modalidade">Modalidade da Proposta *</label>
+                  <select id="form-modalidade" required>
+                    <option value="Convênio">Convênio</option>
+                    <option value="Contrato de Repasse">Contrato de Repasse</option>
+                    <option value="Termo de Compromisso">Termo de Compromisso</option>
+                    <option value="Fundo a Fundo">Fundo a Fundo</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="form-situacao">Situação Inicial *</label>
+                  <select id="form-situacao" required>
+                    <option value="CADASTRADA">Cadastrada</option>
+                    <option value="ENVIADA">Enviada</option>
+                    <option value="EM_ANALISE">Em Análise</option>
+                    <option value="HABILITADA">Habilitada</option>
+                    <option value="SELECIONADA">Selecionada</option>
+                    <option value="NAO_HABILITADA">Não Habilitada</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="form-valorTotal">Valor Total (R$) *</label>
+                  <input type="number" id="form-valorTotal" step="0.01" class="form-control" required placeholder="0.00" onchange="calculateFinancials()">
+                </div>
+                <div class="form-group">
+                  <label for="form-contrapartida">Valor de Contrapartida (R$) *</label>
+                  <input type="number" id="form-contrapartida" step="0.01" class="form-control" required placeholder="0.00" onchange="calculateFinancials()">
+                </div>
+                <div class="form-group">
+                  <label for="form-valorSolicitado">Valor Solicitado à União (R$)</label>
+                  <input type="text" id="form-valorSolicitado" class="form-control" readonly style="background-color:var(--md-sys-color-surface-variant);" placeholder="R$ 0,00">
+                </div>
+                <div class="form-group">
+                  <label for="form-ano">Ano Orçamentário *</label>
+                  <input type="number" id="form-ano" class="form-control" required value="2026">
+                </div>
+                
+                <div class="form-group">
+                  <label for="form-responsavel">Nome do Responsável *</label>
+                  <input type="text" id="form-responsavel" class="form-control" required placeholder="Ex: Gestor de Convênios">
+                </div>
+                <div class="form-group">
+                  <label for="form-telefone">Telefone de Contato</label>
+                  <input type="text" id="form-telefone" class="form-control" placeholder="Ex: (81) 99999-9999">
+                </div>
+                <div class="form-group">
+                  <label for="form-email">E-mail de Contato</label>
+                  <input type="email" id="form-email" class="form-control" placeholder="Ex: gestor@municipio.gov.br">
+                </div>
+                <div class="form-group" style="grid-column: span 3;">
+                  <label for="form-observacoes">Observações Finais</label>
+                  <textarea id="form-observacoes" class="form-control" rows="2" placeholder="Observações de auditoria ou lembretes do projeto"></textarea>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px; border-top:1px solid var(--md-sys-color-surface-variant); padding-top:20px;">
+                <button type="button" class="btn btn-outline" onclick="cancelForm()">Descartar</button>
+                <button type="submit" class="btn btn-primary">Salvar Proposta</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- VIEW 6: Relatórios -->
+        <section class="view-container" id="view-relatorios">
+          <div class="page-title-row">
+            <div>
+              <div class="breadcrumbs">Gestão <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span> Relatórios</div>
+              <h1 class="page-title">Relatórios e Exportações</h1>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card col-6">
+              <h3>Filtros de Relatório</h3>
+              <div style="display:flex; flex-direction:column; gap:16px; margin-top:16px;">
+                <div class="form-group">
+                  <label>Tipo de Relatório</label>
+                  <select id="reportType">
+                    <option value="analitico">Relatório Analítico de Propostas (Completo)</option>
+                    <option value="financeiro">Relatório Financeiro por Ministério</option>
+                    <option value="situacao">Relatório de Propostas por Situação</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Ministério de Interesse</label>
+                  <select id="reportMinisterio">
+                    <option value="">Todos</option>
+                    <option value="Cidades">Cidades</option>
+                    <option value="Saúde">Saúde</option>
+                    <option value="Educação">Educação</option>
+                    <option value="Esporte">Esporte</option>
+                  </select>
+                </div>
+                <div style="display:flex; gap:12px; margin-top:8px;">
+                  <button class="btn btn-primary" onclick="generateReportData()">Gerar Relatório</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-card col-6">
+              <h3>Painel de Ações de Exportação</h3>
+              <p style="font-size:14px; margin-bottom:16px; color:var(--md-sys-color-on-surface-variant);">
+                Selecione o formato para exportação do relatório ativo na tela.
+              </p>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <button class="btn btn-outline" onclick="exportReport('pdf')">
+                  <span class="material-symbols-outlined">picture_as_pdf</span> PDF
+                </button>
+                <button class="btn btn-outline" onclick="exportReport('csv')">
+                  <span class="material-symbols-outlined">table_chart</span> CSV / Excel
+                </button>
+                <button class="btn btn-outline" onclick="window.print()" style="grid-column: span 2;">
+                  <span class="material-symbols-outlined">print</span> Imprimir Relatório
+                </button>
+              </div>
+            </div>
+
+            <div class="chart-card col-12">
+              <h3>Pré-visualização do Relatório</h3>
+              <div class="table-responsive" style="margin-top:16px; border:1px solid var(--md-sys-color-surface-variant); border-radius:var(--radius-md);">
+                <table style="width:100%;">
+                  <thead id="reportTableHeader">
+                    <!-- Gerado por JavaScript -->
+                  </thead>
+                  <tbody id="reportTableBody">
+                    <tr><td colspan="6" style="text-align:center; color:var(--md-sys-color-on-surface-variant);">Gere o relatório acima para visualizar os dados</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 7: Administração -->
+        <section class="view-container" id="view-admin">
+          <div class="page-title-row">
+            <div>
+              <div class="breadcrumbs">Configuração <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span> Administração</div>
+              <h1 class="page-title">Painel Administrativo</h1>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <!-- Tabela Usuários Cadastrados -->
+            <div class="chart-card col-8">
+              <h3>Controle de Usuários e Perfis</h3>
+              <div class="table-responsive" style="margin-top:16px;">
+                <table style="width:100%;">
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>E-mail</th>
+                      <th>Perfil</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminUsersTableBody">
+                    <!-- Gerado dinamicamente -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="chart-card col-4">
+              <h3>Nova Configuração de Parâmetros</h3>
+              <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
+                <div class="form-group">
+                  <label>Adicionar Novo Ministério</label>
+                  <div style="display:flex; gap:8px;">
+                    <input type="text" id="newMinistryInput" class="form-control" placeholder="Ministério da Cultura">
+                    <button class="btn btn-primary btn-sm" onclick="addMinistryConfig()">Adicionar</button>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-top:12px;">
+                  <label>Adicionar Programa Governamental</label>
+                  <div style="display:flex; gap:8px;">
+                    <input type="text" id="newProgramInput" class="form-control" placeholder="Cultura viva nas periferias">
+                    <button class="btn btn-primary btn-sm" onclick="addProgramConfig()">Adicionar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 8: Configurações Gerais -->
+        <section class="view-container" id="view-configuracoes">
+          <div class="page-title-row">
+            <div>
+              <div class="breadcrumbs">Configurações <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span> Geral</div>
+              <h1 class="page-title">Configurações do Sistema</h1>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card col-6">
+              <h3>Preferências Visuais e Operacionais</h3>
+              <div style="display:flex; flex-direction:column; gap:16px; margin-top:16px; font-size:14px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <span>Ativar Salvamento Automático (Rascunhos):</span>
+                  <input type="checkbox" id="configAutoSave" checked style="width:20px; height:20px;">
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <span>Enviar Notificações de Prazos Críticos por E-mail:</span>
+                  <input type="checkbox" id="configNotifications" checked style="width:20px; height:20px;">
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <span>Limitar visualização da tabela (Registros por página):</span>
+                  <select id="configPageSize" style="height:30px; width:80px;">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary" onclick="saveGeneralSettings()" style="margin-top:16px;">Salvar Preferências</button>
+              </div>
+            </div>
+
+            <div class="chart-card col-6">
+              <h3>Resetar e Limpar Banco de Dados</h3>
+              <p style="font-size:14px; margin-bottom:16px; color:var(--md-sys-color-on-surface-variant);">
+                Se desejar retornar o sistema ao estado inicial de fábrica (apagando as propostas que você adicionou ou editou), utilize o botão abaixo.
+              </p>
+              <button class="btn btn-danger" onclick="resetDatabaseToDefault()">
+                <span class="material-symbols-outlined">restart_alt</span> Restaurar Banco de Dados Padrão
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Gaveta Lateral de Notificações (Notification Drawer) -->
+    <div class="notification-drawer" id="notificationDrawer">
+      <div class="drawer-header">
+        <h3>Notificações do Sistema</h3>
+        <button class="btn-icon" id="closeNotificationDrawerBtn"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="drawer-content" id="notificationList">
+        <!-- Notificações geradas via JavaScript -->
+      </div>
+    </div>
+
+    <!-- Container do Toast (Alertas Flutuantes) -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal de Confirmação para Exclusão -->
+    <div class="modal-overlay" id="confirmDeleteModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Confirmar Exclusão</h3>
+          <button class="btn-icon" onclick="closeConfirmDeleteModal()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          <p>Você realmente deseja excluir esta proposta permanentemente? Esta ação não poderá ser desfeita.</p>
+          <div style="margin-top:12px; font-weight:600;" id="deleteProposalMeta">Proposta Nº: </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeConfirmDeleteModal()">Cancelar</button>
+          <button class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts do Banco de Dados e Lógica do App -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
